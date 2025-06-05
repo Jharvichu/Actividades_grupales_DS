@@ -50,3 +50,12 @@ class ResourcePrototype:
             Diccionario del recurso actual (clonado o original).
         """
         return self._resource_dict
+    
+    def add_welcome_file(block: dict):
+        block["resource"]["null_resource"]["app_0"]["triggers"]["welcome"] = "¡Hola!"
+        block["resource"]["local_file"] = {
+        "welcome_txt": {
+            "content": "Bienvenido",
+            "filename": "${path.module}/bienvenida.txt"
+        }
+    }
