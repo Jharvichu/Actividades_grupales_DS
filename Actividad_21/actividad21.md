@@ -15,6 +15,14 @@ Los triggers tienen como propósito no actuar directamente sobre la infraestruct
 
 ### 1.3. Prototype
 
+El parámetro `mutator` nos permite personalizar cada instancia que clonemos ya que actua como una función que modifica la copia del prototipo. Ahora, cuando se llama al método `clone` se hace una clonación del objeto original gracias a `deppcopy`, con esto nos aseguramos que la copia es totalmente independiente del prototipo. Luego de esto, el `mutator` recibe dicha copia como un argumento y puede modificarla libremente (para cambiar valores o eliminar algunos datos). Todo esto nos permite generar múltiples versiones modificadas de un mismo prototipo sin afectar al original, lo cual nos brinda una forma de reutilizar configuraciones sin la necesidad de redefinir toda la estructura o crear otras clases.
+
+**Diagrama UML:**
+
+<div align = "center">
+    <img src="img/fase1_3.png" width="500">
+</div>
+
 ### 1.4. Composite
 
 ### 1.5. Builder
