@@ -138,7 +138,11 @@ Se ejecuto perfectamente bien “Terraform Apply”
 
 
 
+Se generó un archivo de bienvenida.txt, tal como se tenía planeado desde que se agrego el bloque “local_file” .
 
+
+
+![pp](https://github.com/Jharvichu/Actividades_grupales_DS/blob/main/Actividad_21/img/2.3.3.png)
 
 
 
