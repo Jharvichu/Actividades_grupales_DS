@@ -5,6 +5,13 @@
 ### 1.1. Singleton
 
 ### 1.2. Factory
+La fábrica(Factory) encapsula la creación del Null Resource de 4 maneras.
+
+La primera manera de encapsulación es mediante la Abstracción de la estructura interna, la fábrica proporciona un método llamado create(), simplemente el usuario tiene que proporcionar su nombre.
+
+La segunda manera de encapsulación se da cuando la fábrica genera datos para los triggers. En  factory_uuid se crea un UUID usando uuid. uuid4(), esto hace que cada null_resource recientemente dado por la fábrica, pose a un identificador único en sus triggers. El timestamp() registra el tiempo UTC actual. La tercera manera se da cuando la fábrica se preocupa para que todos los null_resource  usen una misma estructura y convención. La última forma de encapsular se da cuando la estructura de null_resource cambia debido a que se le agregaron nuevas propiedades o se le modifico la manera en que se definieron triggers.
+
+Los triggers tienen como propósito no actuar directamente sobre la infraestructura, sino más bien controlar el ciclo de vida de las acciones que tienen que ver con null_resource, pueden hacer que se pueda volver a ejecutar ciertos scripts.
 
 ### 1.3. Prototype
 
