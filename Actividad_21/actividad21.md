@@ -4,6 +4,30 @@
 
 ### 1.1. Singleton
 
+La clase `SingletonMeta` garantiza que una clase que la utilice como metaclase solo pueda tener una instancia única que se este ejecutando en todo el proceso. 
+
+Asi que define un diccionario que va a almacenar las instancias unicas de las clases que utilizan esta metaclase:
+
+```python
+_instances: Dict[type, "ConfigSingleton"] = {}
+```
+
+Ademas se crea el objeto `_lock` que servira como seguridad en procesos de multi-hilo, evitando que otros hilos modifiquen un recurso compartido. Se le asigna a esta variable la instancia de la clase `threading.Lock` para que cumpla la funcion de proteger los hilos.
+
+```python
+_lock: threading.Lock = threading.Lock()
+```
+
+Luego esta el metodo `__call__` que controla las instancias para que sea unica en todo el proceso. Para controlar que solamente existe una instancia verifica si la isntancia creada ya existe, retorna la creada anteriormente
+
+```python
+def __call__(cls, *args, **kwargs):
+    with cls._lock:
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+    return cls._instances[cls]
+```
+
 ### 1.2. Factory
 La fábrica(Factory) encapsula la creación del Null Resource de 4 maneras.
 
@@ -20,7 +44,7 @@ El parámetro `mutator` nos permite personalizar cada instancia que clonemos ya 
 **Diagrama UML:**
 
 <div align = "center">
-    <img src="img/fase1_3.png" width="500">
+    <img src="img/fase1_3.png" width="300">
 </div>
 
 ### 1.4. Composite
