@@ -44,3 +44,33 @@ class NullResourceFactory:
                 }]
             }]
         }
+
+
+class TimestampedNullResourceFactory(NullResourceFactory):
+    """
+    Versión especializada que permite formato personalizado en el timestamp.
+    Hereda y reutiliza la lógica base de NullResourceFactory.
+    """
+    @staticmethod
+    def create(name: str, fmt: str = "%Y/%m/%d %H:%M:%S", triggers: Dict[str, Any] | None = None) -> Dict[str, Any]:
+        
+        ts = datetime.utcnow().strftime(fmt)
+
+        triggers = triggers or {}
+
+        # Agrega un trigger por defecto: UUID aleatorio para asegurar unicidad
+        triggers.setdefault("factory_uuid", str(uuid.uuid4()))
+
+        # Agrega un trigger con timestamp actual segun el formato fmt
+        triggers.setdefault("timestamp", ts)
+
+        # Retorna el recurso estructurado como se espera en archivos .tf.json
+        return {
+            "resource": [{
+                "null_resource": [{
+                    name: [{
+                        "triggers": triggers
+                    }]
+                }]
+            }]
+        }
