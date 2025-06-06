@@ -185,7 +185,50 @@ Ahora al ejecutar el script `generate_infra.py`, se muestra el tiempo con la est
 
 ### 3.1. Comparativa Factory vs Prototype
 
+#### Patron Factory
 
+El patron **Factory** es un patron creacional que centraliza la lógica de construcción de objetos o recursos en una clase especifica, como si fuera una fabrica, asi que este patron es especialmente útil para generar configuración estandarizada de manera estructurada y mantenible.
+
+- **Ventajas**:
+  
+  - **Encapsulacion**: La lógica de construccion de recursos se centraliza en una clase Factory (como `NullResourceFactory`) permitiendo que el usuario que necesite la infraestructura no necesite conocer como se ensambla cada bloque, lo que facilita la modificación y el mantenimiento directamente en la clase.
+  
+    ```python
+    # Sin Factory (menos mantenible)
+    resource = {
+        "resource": {
+            "null_resource": {
+                "app": {
+                    "triggers": {
+                        "uuid": "123", 
+                        "timestamp": "2025-01-01"
+                    }
+                }
+            }
+        }
+    }
+
+    # Con Factory (más limpio y reutilizable)
+    resource = NullResourceFactory.create("app", triggers={"custom_key": "value"})
+    ```
+  - **Flexibilidad**: Permite personalizar recursos mediante parametros sin modificar la lógica base como en `TimestampedNullResourceFactory` que podemos cambiar el formato del tiempo y que podemos assignarle *triggers*.
+  - **Estandarización**: Permite garantizar que todos los recursos sigan un mismo esquema, evitando errores humanos en la definición manual.
+
+- **Cuando Usarlo**
+  - Cuando los recursos que se construiran tienen una estructura predecible y que no requieran clonación.
+  - Para evitar la duplicación de código en la creación de configuraciones repetitivas.
+
+#### Patron Prototype
+
+El patrón **Prototype** es un patron de diseño creacional que permite clonar objetos existentes como si fuera un prototipo cambio de crealos desde cero, asi que es especialmente útil para generar recursos con variaciones mínimas de manera eficiente y mantenible.
+
+- **Ventajas**
+  - **Reutilización**: Permite clonar configuraciones base y modificarlas sin repetir codigo o evitando riesgos en tener errores.
+  - **Personalización**: Permite añadir parametros especificos, modificar atributos, etc. Utiliza los mutadores (`mutador`) ya que reciben una copia y permiten ajustar cada instancia según necesidades especificas asi minimizando errores o configuraciones incompletas.
+
+- **Cuando Usarlo**
+  - Cuando se necesite una personalización dinámica, como inputs variables de region, tamaños de VM, etc, utilizando mutadores para aplicar cambios sin modificar el prototipo original.
+  - Cuando la recreacion manualmente directa es más costosa que clonar y modificar
 
 ### 3.2 Patrones avanzados: Adapter (código de referencia)
 
