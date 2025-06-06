@@ -73,7 +73,101 @@ Al ejecutarlo, notamos que el test pasa, lo cual indica que el método funciona 
 
 ### Ejercicio 2.2: Variación de la Factory
 
+Primeramente añadimos al script `Factory.py` una nueva clase llamada `TimestampedNullResourceFactory` que hereda el comportamiento de la clase `NullResourceFactory`, pero modificando el formato en que se muestra el tiempo en el archivo `.tf` por medio del parametro *fmt*.
 
+```python
+class TimestampedNullResourceFactory(NullResourceFactory):
+
+    @staticmethod
+    def create(name: str, fmt: str = "%Y/%m/%d %H:%M:%S", triggers: Dict[str, Any] | None = None) -> Dict[str, Any]:
+        
+        ts = datetime.utcnow().strftime(fmt)
+
+        triggers = triggers or {}
+        triggers.setdefault("factory_uuid", str(uuid.uuid4()))
+        triggers.setdefault("timestamp", ts)
+
+        return {
+            "resource": [{
+                "null_resource": [{
+                    name: [{
+                        "triggers": triggers
+                    }]
+                }]
+            }]
+        }
+```
+
+Observamos que sigue la misma estructura de `NullResourceFactory`, asi que modificamos `builder.py` ya que lo implementa para contruir en algunas partes del codigo. Asi que modificamos para que nos quede asi y se contruya correctamente el archivo `main.tf`
+
+```python
+class InfrastructureBuilder:
+
+    ...
+
+    def build_null_fleet(self, count: int = 5) -> "InfrastructureBuilder":
+        base_proto = ResourcePrototype(
+            TimestampedNullResourceFactory.create("placeholder") #Parte modificada
+        )
+
+    ...
+
+    def add_custom_resource(self, name: str, triggers: Dict[str, Any]) -> "InfrastructureBuilder":
+        self._module.add(TimestampedNullResourceFactory.create(name,"%Y/%m/%d", triggers)) #Parte modificada
+        return self
+```
+
+Despues de modificar y antes de ejecutar el script `generate_infra.py`, observamos como esta estructurado una pequeña parte de `main.tf` antes de ejecutar la modificación.
+
+```json
+{
+    "resource": [
+        {
+            "null_resource": [
+                {
+                    "placeholder_0": [
+                        {
+                            "triggers": {
+                                "factory_uuid": "973aeec8-03c9-482d-9476-a1b77c08c77c",
+                                "timestamp": "2025-06-05T01:18:51.600939",
+                                "index": 0
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+    ...
+}
+```
+
+Ahora al ejecutar el script `generate_infra.py`, se muestra el tiempo con la estructura que asignamos en nuestro cambio en una pequeña parte de `main.tf`.
+
+<div align = "center">
+    <img src="img/ejer2_2.png" width="1000">
+</div>
+
+```json
+{
+    "resource": [
+        {
+            "null_resource": [
+                {
+                    "placeholder_0": [
+                        {
+                            "triggers": {
+                                "factory_uuid": "235c39e9-ab22-4481-8e88-0b03afaf84e0",
+                                "timestamp": "2025/06/06 03:44:39",
+                                "index": 0
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+    ...
+}
+```
 
 ### Ejercicio 2.3: Mutaciones avanzadas con Protype
 
