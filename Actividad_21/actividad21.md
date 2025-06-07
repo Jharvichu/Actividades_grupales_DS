@@ -412,7 +412,7 @@ y salio todo bien:
 
 
 
-
+se trabajaron el diagrama y el esquema
 
 
 
