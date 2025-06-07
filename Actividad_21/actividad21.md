@@ -259,7 +259,19 @@ generate():
 
  
 
-Luego ejecute, todo salio exitosamente:
+Luego ejecute:
+
+
+
+![oo](https://github.com/Jharvichu/Actividades_grupales_DS/blob/main/Actividad_21/img/3.2.1.png)
+
+
+
+todo exitoso el resultado.
+
+
+
+![om](https://github.com/Jharvichu/Actividades_grupales_DS/blob/main/Actividad_21/img/3.2.2.png)
 
 
 
@@ -272,5 +284,17 @@ Luego ejecute, todo salio exitosamente:
 
 
 ### 3.5 Integración con Terraform Cloud(opcional)
+
+
+![yu](https://github.com/Jharvichu/Actividades_grupales_DS/blob/main/Actividad_21/img/3.5.1.png)
+
+
+
+
+
+
+
+![ui](https://github.com/Jharvichu/Actividades_grupales_DS/blob/main/Actividad_21/img/3.5.2.png)
+
 
 
