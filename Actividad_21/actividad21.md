@@ -419,5 +419,18 @@ El patrón **Prototype** es un patron de diseño creacional que permite clonar o
 
 ### 3.4 Escalabilidad de JSON
 
+Al ejecutar `generate_infra.py` para generar la infraestructura tendra variaciones dependiendo de cuanto necesitemos y pongamos en `build_null_fleet()`. Comparemos el tamaño de `terraform/main.tf` al ejecutar para:
+
+| `build_null_fleet(15)` | `build_null_fleet(150)` |
+|------------------------|-------------------------|
+| Peso del archivo : 8kb | Peso del archivo : 73kb |
+
+Observamos que hay un considerable aumento del peso del archivo, aproximadamente 10 veces más. Pero, **¿ Qué impactos puede tener en el CI/CD ?**: 
+
+* Tiempo de ejecución: al aumentar los recursos creados en la infraestructura, al ejecutar los comandos `terraform plan/apply` puede aumentar lineal o exponencialmente el tiempo de ejecución en el pipeline.
+* Consumo de recursos: al generar mas recursos en nuestra infraestructura, puede que necesite más uso de la memoria RAM asignada en el pipeline.
+* Costos ocultos: en caso se utilicen recursos de proveedores de la nube, al aumentar los recursos, puede sobrepasar los limites gratuitos y cobrandonos los recursos extras utilizados en la ejecución.
+
+
 
  
