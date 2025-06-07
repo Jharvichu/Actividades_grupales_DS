@@ -354,7 +354,27 @@ Se generó un archivo de bienvenida.txt, tal como se tenía planeado desde que s
 
 ### Ejercicio 2.4: Submódulos con Composite
 
+Para este ejercicio modificamos la clase `CompositeModule` en el archivo `composite.py` para manejar submódulos Terraform. Primero, se "extiende" el patrón composite para combinar recursos y submódulos (`resoruce` y `module`) en una sola exportación JSON para terraform local.
 
+Entonces, modificamos el método `export()` para que pueda distinguir entre recursos y submódulos. Los recursos se ponen en una lista unificada y los submódulos de agregan como entradas de diccionario con clave `module`, usamos `update()` para no sobreescribir otros módulos.
+
+<div align = "center">
+    <img src="img/ejer2_4_1.png" width="500">
+</div>
+
+Como segundo paso, modificamos el script `generate_infra.py`, llamando a `CompsiteModule` donde agregamos los recursos generados por el patrón builder y además los dos submódulos network y app. El resultado es exportado a `main.tf.json` dentro de `terraform/`
+
+<div align = "center">
+    <img src="img/ejer2_4_2.png" width="500">
+</div>
+
+Para que esto funcione, se crearon dos submódulos locales: `modules/network` y `modules/app`, ambos con sus archivos `main.tf`. Cada uno de estos tiene un `null_resource` con sus respectivos triggers.
+
+Resultado obtenido:
+
+<div align = "center">
+    <img src="img/ejer2_4_3.png" width="500">
+</div>
 
 ### Ejercicio 2.5: Builder personalizado
 

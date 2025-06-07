@@ -15,6 +15,8 @@ No se requieren credenciales de nube, demonio de Docker, ni dependencias externa
 import os
 from iac_patterns.builder import InfrastructureBuilder
 from iac_patterns.singleton import ConfigSingleton
+from iac_patterns.composite import CompositeModule
+import json
 
 def main() -> None:
     # Inicializa una configuración global única para el entorno "local-dev"
@@ -35,6 +37,53 @@ def main() -> None:
 
     # Exporta el resultado a un archivo Terraform JSON en el directorio especificado
     builder.export(path=os.path.join("terraform", "main.tf.json"))
+
+    # Crea módulo compuesto
+    composite = CompositeModule()
+
+    # Submodulo network
+    network_module = {
+        "module": {
+            "network": {
+                "source": "./modules/network",
+                "cidr_block": "10.0.0.0/16"
+            }
+        }
+    }
+
+    # Submodulo app
+    app_module = {
+        "module": {
+            "app": {
+                "source": "./modules/app",
+                "replicas": 3
+            }
+        }
+    }
+
+    # dummy
+    null_resource = {
+        "resource": [
+            {
+                "null_resource": {
+                    "main": {
+                        "triggers": {
+                            "mensaje": "recurso parte del módulo compuesto"
+                        }
+                    }
+                }
+            }
+        ]
+    }
+
+    # Agregando submódulos y recurso
+    composite.add(network_module)
+    composite.add(app_module)
+    composite.add(null_resource)
+    # estructura final
+    os.makedirs("terraform", exist_ok=True)
+    with open(os.path.join("terraform", "main.tf.json"), "w") as f:
+        json.dump(composite.export(), f, indent=2)
 
 # Ejecuta la función principal si el archivo se ejecuta directamente
 if __name__ == "__main__":
