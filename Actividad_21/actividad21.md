@@ -49,12 +49,90 @@ El parámetro `mutator` nos permite personalizar cada instancia que clonemos ya 
 
 ### 1.4. Composite
 
+Esta clase implementa el patrón `Composite` para manejar recursos de Terraform, permitiendo agrupar múltiples recursos individuales en una estructura unificada.
+
+Primeramente en la clase `CompositeModule`, se inicializa una lista vacia en su constrcutor que almacenará diccionarios de recursos Terraform, donde cada uno tiene su propia estructura.
+
+```python
+class CompositeModule:
+    def __init__(self) -> None:
+        self._children: List[Dict[str, Any]] = []
+```
+
+Despues tenemos al metodo `add` que se encarga de añadir recursos individuales que tengan un formato de diccionario en la lista que se creo en su constructor
+
+```python
+def add(self, resource_dict: Dict[str, Any]) -> None:
+    self._children.append(resource_dict)
+```
+
+Y por ultimo tenemos al metodo `export`, en el cual primeramente crea un diccionario base con una lista vacía bajo la clave `resource`:
+
+```python
+aggregated: Dict[str, Any] = {"resource", []}
+```
+
+Despues recorre cada recurso almacenado en `_children` que fueron añadidos previamente con `add()` por medio de iteración como se muestra:
+
+```python
+ for child in self._children:
+```
+
+Al recorrer cada hijo obtiene los bloques `resource` y extiende la lista `aggregated["resource"]` con estos bloques que hemos obtenido de los hijos. El metodo resultante seria:
+
+```python
+def export(self) -> Dict[str, Any]:
+    aggregated: Dict[str, Any] = {"resource": []}
+    for child in self._children:
+        aggregated["resource"].extend(child.get("resource", []))
+    return aggregated
+```
+
+Como ejemplo supongamos que tengamos el siguiente codigo en python, donde utilizemos el patron composite:
+
+```python
+modulo = CompositeModule()
+modulo.add({
+    "resource": [
+        {"null_resource": {"app1": {"triggers": {"id": 1}}}}
+    ]
+})
+modulo.add({
+    "resource": [
+        {"null_resource": {"app2": {"triggers": {"id": 2}}}},
+        {"local_file": {"config": {"content": "..."}}}
+    ]
+})
+```
+
+Si llamamos al `export()`, primeramente iniciamos con `{"resource":[]}`, luego extrae del primer hijo `["null_resource": {"app1": ...}]` y extiende la lista `aggregated`. De la misma manera para el segundo hijo `[{"null_resource": {"app2": ...}}, {"local_file": ...}]` y extiende la lista `aggregated`, resultando al final:
+
+```json
+{
+    "resource": [
+        {"null_resource": {"app1": {"triggers": {"id": 1}}}},
+        {"null_resource": {"app2": {"triggers": {"id": 2}}}},
+        {"local_file": {"config": {"content": "..."}}}
+    ]
+}
+```
+
+Una forma de visualizar como actuaria composite, podria ser de la siguiente manera:
+
+``` txt
+Recursos Individuales (inputs)          Output Combinado
+---------------------------------       ------------------------
+{ "resource": [ A ] }                   {
+{ "resource": [ B, C ] }                  "resource": [ A, B, C, D ]
+{ "resource": [ D ] }                   }
+```
+
 ### 1.5. Builder
 Builder orquesta al composite creando una instancia de CompositeModule, este es importante para agrupar muchos elementos de  infraestructura , acá son recursos, dentro de una estructura jerárquica. Esto hace que Builder pueda adicionar muchos recursos y los pueda exportar.
 
 Se orquesta Factory cuando Builder delega la creación de la estructura base de un null resource a NullResourceFactory. La fábrica NullResourceFactory se encarga de crear la estructura del null_resource con ayuda de sus triggers(UUID y timestamp). Todo esto encapsula lo difícil de formar un null_resource y da una base limpia. Este Builder no  necesita saber mucho acerca de la creación del null_resource, solo la fábrica devolverá un objeto null_resource válido.
 
- Orquestar Prototipo, es un proceso diferente, pues primero que Builder posee la base(null_resource), la usa para inventar ResourcePrototype. El Patrón Prototype es muy importante para mejorar la eficiencia del trabajo. Para que count no cree nuevos null_resurce desde el comienzo con la fábrica, lo cual es muy costoso, el Builder crea un prototipo del recurso.
+Orquestar Prototipo, es un proceso diferente, pues primero que Builder posee la base(null_resource), la usa para inventar ResourcePrototype. El Patrón Prototype es muy importante para mejorar la eficiencia del trabajo. Para que count no cree nuevos null_resurce desde el comienzo con la fábrica, lo cual es muy costoso, el Builder crea un prototipo del recurso.
 
 Nuevamente se hace orquestacion del composite(), para esto primero Builder  llama a el método export() de su self.module().Para esto de aca, se espera  con ansias que CompositeModule.export() otorgue  un diccionario que represente la estructura JSON final de la infraestructura.
 
