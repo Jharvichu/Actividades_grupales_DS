@@ -27,6 +27,12 @@ def main() -> None:
     # Construye 15 recursos null ficticios para demostrar escalabilidad (>1000 líneas en total)
     builder.build_null_fleet(count=15)
 
+    # Agrega un recurso simulado usando el adaptador (Actividad 3.2)
+    builder.add_cloud_bucket(
+        name="bucket_cloud_ds",
+        triggers={"nota": "Recurso de nube simulada generada dinámicamente en tiempo de ejecución"}
+    )
+
     # Agrega un recurso final personalizado con una nota descriptiva
     builder.add_custom_resource(
         name="finalizador",
