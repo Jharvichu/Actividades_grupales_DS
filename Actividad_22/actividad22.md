@@ -1,5 +1,37 @@
 # ACTIVIDAD 22
 
+## Patrones
+
+### Facade
+
+#### Ejercicios Teóricos
+
+
+
+#### Ejercicios Prácticos
+
+
+
+### Adapter
+
+#### Ejercicios Teóricos
+
+
+
+#### Ejercicios Prácticos
+
+
+
+### Mediator
+
+#### Ejercicios Teóricos
+
+
+
+#### Ejercicios Prácticos
+
+
+
 ## Fases
 
 ### Fase 1
@@ -101,9 +133,5 @@
 
 
 ### Ejercicio 16
-
-
-
-### Ejercicio 1
 
 
