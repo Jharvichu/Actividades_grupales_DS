@@ -7,7 +7,7 @@ from typing import Dict, Any
 import os
 import json
 
-from .factory import NullResourceFactory
+from .factory import NullResourceFactory, TimestampedNullResourceFactory
 from .composite import CompositeModule
 from .prototype import ResourcePrototype
 from iac_patterns.factory import NullFactory
@@ -32,7 +32,7 @@ class InfrastructureBuilder:
         """
         # Se crea un prototipo reutilizable a partir de un recurso null de fábrica
         base_proto = ResourcePrototype(
-            NullResourceFactory.create("placeholder")
+            TimestampedNullResourceFactory.create("placeholder")
         )
 
         for i in range(count):
@@ -68,7 +68,7 @@ class InfrastructureBuilder:
         Returns:
             self: permite encadenar llamadas.
         """
-        self._module.add(NullResourceFactory.create(name, triggers))
+        self._module.add(TimestampedNullResourceFactory.create(name,"%Y/%m/%d %H:%M:%S", triggers))
         return self
 
     #  Método final (exportación) 
