@@ -10,7 +10,6 @@ import json
 from .factory import NullResourceFactory
 from .composite import CompositeModule
 from .prototype import ResourcePrototype
-from iac_patterns.factory import NullFactory
 from iac_patterns.adapter import MockBucketAdapter
 
 class InfrastructureBuilder:
@@ -71,6 +70,22 @@ class InfrastructureBuilder:
         self._module.add(NullResourceFactory.create(name, triggers))
         return self
 
+    def add_cloud_bucket(self, name: str, triggers: Dict[str, Any]) -> "InfrastructureBuilder":
+        """
+        Agrega un recurso null de cloud (simulado) al módulo compuesto.
+
+        Args:
+            name: nombre del recurso de pruebas.
+            triggers: diccionario de triggers personalizados.
+        Returns:
+            self: permite encadenar llamadas.
+        """
+        null_factory = NullResourceFactory.create(name, triggers)
+        bucket_resource = MockBucketAdapter(null_factory).to_bucket()
+        # Empaqueta como espera el módulo (lista de dicts bajo "resource")
+        self._module.add(bucket_resource)
+        return self
+
     #  Método final (exportación) 
 
     def export(self, path: str) -> None:
@@ -90,27 +105,3 @@ class InfrastructureBuilder:
             json.dump(data, f, indent=4)
 
         print(f"[Builder] Terraform JSON escrito en: {path}")
-        
-class Builder:
-    def __init__(self):
-        self.infra = {}
-
-    def add_null(self, name, triggers=None):
-        null_factory = NullFactory(name, triggers)
-        resource = null_factory.create()
-        self.infra.update(resource)
-
-    def add_mock_bucket(self, name, triggers=None):
-        # 1. Crea el recurso null con la fábrica
-        null_factory = NullFactory(name, triggers)
-        null_resource = null_factory.create()
-
-        # 2. Usa el adaptador para transformarlo
-        adapter = MockBucketAdapter(null_resource)
-        mock_bucket_resource = adapter.to_bucket()
-
-        # 3. Añade a la infraestructura final
-        self.infra.update(mock_bucket_resource)
-
-    def generate(self):
-        return self.infra 

@@ -13,7 +13,7 @@ No se requieren credenciales de nube, demonio de Docker, ni dependencias externa
 """
 
 import os
-from iac_patterns.builder import InfrastructureBuilder  # Corregido
+from iac_patterns.builder import InfrastructureBuilder
 from iac_patterns.singleton import ConfigSingleton
 
 def main() -> None:
@@ -28,7 +28,10 @@ def main() -> None:
     builder.build_null_fleet(count=15)
 
     # Agrega un recurso simulado usando el adaptador (Actividad 3.2)
-    builder.add_mock_bucket(name="bucket_pruebas_ds")
+    builder.add_cloud_bucket(
+        name="bucket_cloud_ds",
+        triggers={"nota": "Recurso de nube simulada generada dinámicamente en tiempo de ejecución"}
+    )
 
     # Agrega un recurso final personalizado con una nota descriptiva
     builder.add_custom_resource(

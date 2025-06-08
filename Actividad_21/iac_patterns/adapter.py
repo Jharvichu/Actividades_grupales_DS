@@ -5,11 +5,16 @@ class MockBucketAdapter:
 
     def to_bucket(self) -> dict:
         # Mapear triggers a parámetros de bucket simulado
-        name = list(self.null["resource"]["null_resource"].keys())[0]
+        null_resource_list = self.null["resource"][0]["null_resource"][0]
+        name = list(null_resource_list.keys())[0]
+        triggers = null_resource_list[name][0]["triggers"]
+
         return {
-            "resource": {
-                "mock_cloud_bucket": {
-                    name: {"name": name, **self.null["resource"]["null_resource"][name]["triggers"]}
-                }
-            }
+            "resource": [{
+                "mock_cloud_bucket": [{
+                    name: [{
+                        "triggers": triggers
+                    }]
+                }]
+            }]
         }
