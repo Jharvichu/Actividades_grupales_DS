@@ -103,7 +103,28 @@ Ahora, ¿por qué no usar Adapter?, el patrón adapter se usa cuando tenemos for
 
 
 
-### Inyección de dependencias
+### Adapter
+
+
+  
+
+### Mediator
+
+#### Ejercicios Teóricos
+
+
+
+#### Ejercicios Prácticos
+
+
+
+## Fases
+
+### Fase 1
+
+
+
+### Fase 2
 
 #### Ejercicios Teóricos
 
@@ -205,27 +226,7 @@ Se creo un archivo main.tf.json a la hora de ejecturar:
     } 
   } 
 }
-``` 
-  
-
-### Mediator
-
-#### Ejercicios Teóricos
-
-
-
-#### Ejercicios Prácticos
-
-
-
-## Fases
-
-### Fase 1
-
-
-
-### Fase 2
-
+```  
 
 
 ### Fase 3
@@ -238,6 +239,149 @@ Se creo un archivo main.tf.json a la hora de ejecturar:
 
 ### Fase 5
 
+#### teórico 
+
+ 
+### Diferencias entre Mediator y Facade
+#### Propósito: 
+El patrón Mediator se enfoca en coordinar la comunicación entre varios objetos o módulos. Es especialmente útil cuando esos componentes necesitan interactuar entre sí de forma compleja o cambiante. En cambio, el patrón Facade busca simplificar el acceso a un sistema complicado, pues nos ofrece una interfaz más sencilla para trabajar con múltiples clases o funcionalidades. 
+#### Nivel de control: 
+ El Mediator tiene un control alto sobre cómo los objetos interactúan entre sí. Centraliza toda la lógica de interacción en un solo lugar. 
+ La Facade, en cambio, no controla tanto; su función es simplemente agrupar y ordenar llamadas a otros subsistemas sin alterar su lógica interna. 
+
+#### Acoplamiento: 
+ El Mediator reduce el acoplamiento entre componentes, ya que evita que los objetos se comuniquen directamente. La Facade sí mantiene el acoplamiento con los subsistemas, pero lo hace de forma más ordenada y lo oculta tras una interfaz sencilla. 
+
+#### Flujo de interacción: 
+ Con Mediator, el flujo de comunicación es más dinámicoy puede variar según la situación, porque está diseñado para coordinar múltiples partes. 
+ En el caso de Facade, el flujo suele ser más lineal y directo: se llama a un método de la fachada y esta se encarga de ejecutar acciones en orden. 
+
+Ejemplo común: 
+ Un buen ejemplo del uso de Mediator sería un sistema de chat o de eventos, donde muchos componentes necesitan coordinarse sin depender unos de otros. 
+ Un ejemplo típico de Facade sería una API que ofrece funciones sencillas para acceder a una biblioteca compleja, como por ejemplo una que se encargue de procesar imágenes o acceder a servicios en la nube. 
+ 
+
+
+
+#### práctico
+
+
+Cree el archivo mediator.py dentro de el patrón Mediator, con las configuraciones necesarias. 
+Luego me fui a mi ruta cd Actividad_22/Mediator 
+Luego ejecute: python3 main.py 
+Me genera un archivo main.tf.json con recursos: network, server y firewall, todos bajo el proveedor null_resource.  
+
+
+
+``` pyton 
+import json  
+
+from pathlib import Path 
+
+# Funciones para verificar si los archivos de configuración existen
+ 
+def check_network_state():
+
+# Verifica si el archivo de configuración de red existe  
+
+return Path("network.tf.json").exists() 
+
+def check_server_state():  
+
+# Checkea si el archivo de configuración del servidor existe  
+
+return Path("server.tf.json").exists() 
+
+def check_firewall_state():  
+
+# Checkea si el archivo de configuración del firewall existe  
+
+return Path("firewall.tf.json").exists() 
+
+# Clase que actúa como el Mediador 
+
+class TerraformMediator:  
+
+def __init__(self):  
+
+# Guarda el estado de cada módulo (True si existe el archivo correspondiente) 
+
+self.states = { "network": check_network_state(), 
+
+ "server": check_server_state(),  
+
+"firewall": check_firewall_state() } 
+
+def validate_dependencies(self): 
+    # Valida que los módulos están ahi 
+    if not self.states["network"]: 
+        raise RuntimeError(" Falta la configuración de la red (network.tf.json)") 
+    if not self.states["server"]: 
+        raise RuntimeError(" Falta la configuración del servidor (server.tf.json)") 
+    if not self.states["firewall"]: 
+        raise RuntimeError(" Falta la configuración del firewall (firewall.tf.json)") 
+ 
+def generate_main_tf(self): 
+    print(" Todos los módulos están presentes. Generando main.tf.json...") 
+    # Estructura centralizada con dependencias simuladas 
+    main_tf = { 
+        "resource": { 
+            "null_resource": { 
+                "network": { 
+                    "triggers": { 
+                        "name": "vpc-dev" 
+                    } 
+                }, 
+                "server": { 
+                    "triggers": { 
+                        "subnet": "subnet-1234", 
+                        "ip": "10.0.0.5" 
+                    }, 
+                    "depends_on": ["null_resource.network"] 
+                }, 
+                "firewall": { 
+                    "triggers": { 
+                        "allow_ssh": True 
+                    }, 
+                    "depends_on": [ 
+                        "null_resource.network", 
+                        "null_resource.server" 
+                    ] 
+                } 
+            } 
+        } 
+    } 
+ 
+    # Guarda la estructura JSON en el archivo final main.tf.json 
+    with open("main.tf.json", "w") as f: 
+        json.dump(main_tf, f, indent=2) 
+ 
+    print(" main.tf.json generado con éxito.") 
+  
+
+# Punto de entrada principal del script 
+
+if name == "main":  
+
+mediator = TerraformMediator()  
+
+try:  
+
+     # Valida que todos los archivos estén presentes  
+
+     mediator.validate_dependencies()  
+
+     # Genera el archivo main.tf.json con dependencias  
+
+     mediator.generate_main_tf()  
+
+except RuntimeError as e:  
+
+# Captura y muestra errores si falta algún archivo  
+
+print(e) 
+```  
+ 
 
 
 ### Fase 6
@@ -281,6 +425,21 @@ Se creo un archivo main.tf.json a la hora de ejecturar:
 ### Ejercicio 6
 
 
+#### Multi-repositorio: 
+
+Flujo por repositorio (por módulo): 
+
+main → rama estable del módulo. 
+
+feature/ → cambios individuales. 
+
+Pull Request → revisión y merge en main. 
+
+Etiquetas (v1.0.1, v1.1.0, etc.) por módulo. 
+
+Gestión de versiones: 
+
+Cada módulo tiene su propio ciclo de versiones. Mayor independencia, menor coordinación global. 
 
 ### Ejercicio 7
 
