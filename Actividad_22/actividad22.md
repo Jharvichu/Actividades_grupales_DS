@@ -103,15 +103,110 @@ Ahora, ¿por qué no usar Adapter?, el patrón adapter se usa cuando tenemos for
 
 
 
-### Adapter
+### Inyección de dependencias
 
 #### Ejercicios Teóricos
 
+####  Principio de Inversión de Control (IoC) en tu código 
+El IOC es  un principio de diseño y un concepto clave en la implementación de la inyección de dependencias. Proporciona una forma de diseño y organización del código para lograr una mayor modularidad y flexibilidad.
+En el main.py inicial, la clase ServerFactoryModule controlaba de manera directa cómo se obtenía la metadata de red, cargándola desde un archivo JSON dentro de su constructor. Esto proporcionaba  una fuerte dependencia entre la lógica del servidor y el origen de los datos de red. 
+
+Se aplico inversión de control al:
+Separar la responsabilidad de obtener la metadata de red (get_network_metadata) de la clase ServerFactory, inyectar un objeto NetworkMetadata como dependencia en el constructor de ServerFactory. 
+Esto da a entender  que ServerFactory ya no decide cómo se obtiene la información de red, solo la usa. Este cambio permite: 
+Mayor flexibilidad: puedes inyectar metadata desde archivos, bases de datos o incluso pruebas unitarias sin modificar la clase.Menor acoplamiento: ServerFactory no depende de funciones externas o rutas específicas. Mejor mantenibilidad y testeo: puedes simular fácilmente diferentes redes en tests. 
 
 
 #### Ejercicios Prácticos
 
 
+``` 
+import json 
+import ipaddress 
+class NetworkMetadata: 
+    def __init__(self, name, cidr, subnet_id, vpc_id): 
+        self.name = name 
+        self.cidr = cidr 
+        self.subnet_id = subnet_id 
+        self.vpc_id = vpc_id 
+class ServerFactory: 
+    def __init__(self, server_name, network_metadata): 
+      self.server_name = server_name 
+        self.network_metadata = network_metadata 
+    def allocate_ip(self): 
+        network = ipaddress.IPv4Network(self.network_metadata.cidr) 
+        return str(list(network.hosts())[4]) 
+    def build(self): 
+        return { 
+            "resource": { 
+                "aws_instance": { 
+                    self.server_name: { 
+                        "ami": "ami-0c55b159cbfafe1f0", 
+                        "instance_type": "t2.micro", 
+                        "subnet_id": self.network_metadata.subnet_id, 
+                        "private_ip": self.allocate_ip(), 
+                        "tags": { 
+                            "env": "dev", 
+                            "team": "infra" 
+                        }, 
+                        "metadata_options": { 
+                            "http_endpoint": "enabled" 
+                        } 
+                    } 
+                } 
+            } 
+        } 
+def get_network_metadata(path="network/network_metadata.json"): 
+    with open(path) as f: 
+        data = json.load(f) 
+    return NetworkMetadata( 
+        name=data["name"], 
+        cidr=data["cidr"], 
+        subnet_id=data["subnet_id"], 
+        vpc_id=data["vpc_id"] 
+    ) 
+
+if __name__ == "__main__": 
+    metadata = get_network_metadata() 
+    factory = ServerFactory(server_name="web_server", network_metadata=metadata) 
+    result = factory.build()
+
+    with open("server.tf.json", "w") as f: 
+        json.dump(result, f, indent=2) 
+    print(" server.tf.json generado con inyección de dependencias.") 
+``` 
+ 
+ 
+
+![io](https://github.com/Jharvichu/Actividades_grupales_DS/blob/main/Actividad_22/img/fase2.png)
+
+
+
+Se creo un archivo main.tf.json a la hora de ejecturar:
+
+
+``` 
+{ 
+  "resource": { 
+    "aws_instance": { 
+      "web_server": { 
+        "ami": "ami-0c55b159cbfafe1f0", 
+        "instance_type": "t2.micro", 
+        "subnet_id": "subnet-abc123", 
+        "private_ip": "10.0.0.5", 
+        "tags": { 
+          "env": "dev", 
+          "team": "infra" 
+        }, 
+        "metadata_options": { 
+          "http_endpoint": "enabled" 
+        } 
+      } 
+    } 
+  } 
+}
+``` 
+  
 
 ### Mediator
 
