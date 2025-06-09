@@ -443,14 +443,38 @@ Cada módulo tiene su propio ciclo de versiones. Mayor independencia, menor coor
 
 ### Ejercicio 7
 
+#### 7. Justifica el uso de versionado semántico en módulos Terraform. ¿Qué consecuencias podría tener omitirlo? 
 
+El versionado semántico (MAJOR.MINOR.PATCH) permite: 
+
+Claridad para consumidores del módulo, compatibilidad garantizada cuando solo cambian versiones MINOR o PATCH, automatización de upgrades seguros (con constraints como ~> 1.2.0). 
+
+Consecuencias de omitirlo: 
+Usuarios no sabrán si una actualización rompe compatibilidad. Ser{a mas difícil la conservación en proyectos grandes. Aumento de errores en CI/CD y en despliegues automatizados. Dificultad para auditar cambios entre versiones. 
 
 ### Ejercicio 8
 
+La política de versiones sigue el esquema semántico MAJOR.MINOR.PATCH, con normas claras y una cadencia establecida para cada tipo de versión: 
+
+Versión PATCH: Se utiliza para correcciones de errores que no afectan la interfaz pública ni introducen nuevas funcionalidades. 
+Ejemplo: v1.2.1 
+Cadencia: Bajo demanda, cada vez que se corrige un bug. 
+Versión MINOR: Se libera cuando se agregan nuevas funcionalidades que son compatibles con versiones anteriores. 
+Ejemplo: v1.3.0 
+Cadencia: Cada 2 a 4 semanas. 
+Versión MAJOR: Se utiliza para cambios que rompen compatibilidad con versiones anteriores, como cambios en nombres de recursos o variables requeridas. 
+Ejemplo: v2.0.0 
+Cadencia: Cada 3 a 6 meses. 
+Normas adicionales: 
+Cada Pull Request (PR) significativo debe actualizar el archivo CHANGELOG.md. 
+Todas las versiones, sin excepción  deben ser verificadas en entornos de staging antes de aplicar el tag correspondiente. 
+ 
 
 
 ### Ejercicio 9
 
+Terraform Cloud Registry ofrece accesibilidad global, integración con búsqueda, y documentación automática. Es lo más recomendado  cuando se quiere compartir módulos públicamente o entre múltiples organizaciones. Pero, depende de un servicio externo y requiere cuentas en Terraform Cloud ( versión Enterprise). La autenticación tiene limitaciones y el control del entorno es menor. 
+Repositorio Git Interno, por otro lado, da un control total sobre la infraestructura, autenticación, y procesos de CI/CD. Se usa más  para entornos corporativos con políticas estrictas de seguridad. Necesita más  mantenimiento e infraestructura adicional para manejar el versionado, autenticación, y visibilidad, pero puede abstenerse completamente de internet. 
 
 
 ### Ejercicio 10
