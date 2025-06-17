@@ -122,6 +122,78 @@ Para validar despliegues complejos, se levantaría un cluster Kubernetes local. 
 
 ## Ejercicio 7: Ampliación de módulos y pruebas unitarias "en caliente"
 
+**1. Módulo `firewall`**
+
+Se crea el directorio `modules/firewall`, donde se añade el archivo terreform `main.tf` con el siguiente código:
+
+```terraform
+variable "rules" {
+  description = "Lista de reglas de firewall"
+  type = list(object({
+    port = number
+    cidr = string
+  }))
+
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+        rule.port > 0 && rule.port < 65536
+    ])
+    error_message = "Puerto inválido, debe estar desde: 1-65535"
+  }
+}
+
+output "policy" {
+  value = jsonencode({ rules = var.rules })
+}
+```
+
+Donde:
+
+- Se define la variable llamada `rules`.
+- Se define el tipo el cual es `list`, una lista de objetos que contiene dos campos: `port`, número de puerto y `cidr`, un rango de IP.
+- Se agrega una validación que devolverá `true` en caso que se cumplan las validaciones.
+- En la validación se verifica que el número de puerto sea válido. En caso que no cumpla, se mostrará un mensaje de error.
+- Como output, devuelve las reglas en formato JSON.
+
+También se crea el archivo de prueba `test.tfvars`, que crea un `rule` con un puerto inválido. 
+
+Probamos esto con `terraform plan -var-file="test.tfvars"`, el cual nos mostrará el mensaje de error.
+
+**2. Módulo `dns`**
+
+Se crea el directorio `modules/dns`, donde se añade el archivo terreform `main.tf` con el siguiente código:
+
+```terraform
+variable "records" {
+  description = "Mapa de hostnames a IPs"
+  type = map(string)
+  validation {
+    condition = alltrue([
+      for k, v in var.records :
+        can(regex("^[a-zA-Z0-9-]+$", k))
+    ])
+    error_message = "Hostname debe ser sin espacios."
+  }
+}
+
+output "dns_map" {
+  value = var.records
+}
+```
+
+Donde:
+
+- Se define la variable llamada `records`.
+- Se define el tipo el cual es `map`, un mapa donde las claves son nombres de host y los valores son strings (IPs).
+- Se agrega una validación que devolverá `true` en caso que se cumplan las validaciones.
+- En la validación se verifica que el nombre del host sea adecuada (solo permite letras, números y guiones). En caso que falle, se mostrará el mensaje de error.
+- Como output, devuelve em mapa con el hostname a IP.
+
+También se crea el archivo de prueba `test.tfvars`, que crea un `record` con un nombre de host inválido. 
+
+Probamos esto con `terraform plan -var-file="test.tfvars"`, el cual nos mostrará el mensaje de error.
+
 ## Ejercicio 8: Contratos dinámicos y testing de outputs
 
 ## Ejercicio 9: Integración encadenada con entornos simulados
