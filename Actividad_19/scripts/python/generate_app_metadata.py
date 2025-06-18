@@ -38,12 +38,11 @@ def main():
 
     app_name = input_json.get("app_name", "unknown_app")
     app_version = input_json.get("version", "0.0.0")
-    deployment_id = input_json.get("deployment_id", "unknown_deployment")
+    # input_data = input_json.get("input_data", "") # Usar si es necesario
 
     # Lógica de generación de metadatos 
     metadata = {
         "appName": app_name,
-        "deploymentId": deployment_id,
         "appVersion": app_version,
         "generationTimestamp": datetime.datetime.utcnow().isoformat(),
         "generator": "Python IaC Script",
