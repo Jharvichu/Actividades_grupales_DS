@@ -229,7 +229,71 @@ Se creo un archivo main.tf.json a la hora de ejecturar:
 ```  
 
 
-### Fase 3
+### Fase 3: Patrón Facade
+
+#### **1. Teoría**
+
+**¿Cómo agruparías varios módulos (red + servidor + firewall) tras un único "facade"?**
+
+Para trabajar con todos esos módulos, se debe agrupar la gestión de dichos módulos en un solo módulo facade, de alto nivel, que servirá como orquestador de los recursos de los demás módulos. Así solamente se interectuaría con este módulo facade, sin la necesidad de interactuar directamente con cada módulo.
+
+Con la implementación del patrón facade, ocultamos la complejidad de la configuración interna (en este caso red, firewall y servidor). También, desde el módulo facade, podemos controlar las dependencias, el orden de creación y pasar outputs de un módulo a otro. 
+
+#### **2. Ejercicio práctico**
+
+- Crea en facade/ un facade.tf.json que exponga outputs simplificados (p.ej., endpoint, network_id).
+- Refactoriza main.py para usar este módulo de facade en lugar de llamadas directas.
+
+1. Se crea el archivo `facade.tf.json` para los outputs simplificados:
+
+```json
+{
+  "output": {
+    "bucket_name": {
+      "value": "hello-world-storage-bucket"
+    },
+    "access_entity": {
+      "value": "allAuthenticatedUsers"
+    },
+    "access_role": {
+      "value": "READER"
+    }
+  }
+}
+```
+
+2. Luego, en `main.py` se añade la clase `moduloFacade` para encapsular la lógica: creación de buckets, escritura de archivos JSON, etc.
+
+```python
+class moduloFacade:
+    def __init__(self, name_base, entity, role):
+        self.bucket_module = StorageBucketModule(name_base)
+        self.bucket_access_module = StorageBucketAccessModule(self.bucket_module.outputs(), entity, role)
+
+    def generate(self):
+        with open("bucket.tf.json", "w", encoding="utf-8") as f:
+            json.dump({"resource": self.bucket_module.resource()}, f, indent=2)
+        with open("bucket_access.tf.json", "w", encoding="utf-8") as f:
+            json.dump({"resource": self.bucket_access_module.resource()}, f, indent=2)
+        facade_outputs = {
+            "output": {
+                "bucket_name": {"value": self.bucket_module.name},
+                "access_entity": {"value": entity},
+                "access_role": {"value": role}
+            }
+        }
+        with open("facade.tf.json", "w", encoding="utf-8") as f:
+            json.dump(facade_outputs, f, indent=2)
+```
+
+3. Ahora, directamente desde la función main, se llama a:
+
+```python
+facade = moduloFacade(name_base, entity, role)
+facade.generate()
+```
+
+Ahora, el código no necesita conocer el funcionamiento interno de storageBucektModule o StorageBucketAccessModule
 
 
 
