@@ -57,7 +57,29 @@ class StorageBucketAccessModule:
             }
         }
 
+# nueva clase
+class moduloFacade:
+    def __init__(self, name_base, entity, role):
+        self.bucket_module = StorageBucketModule(name_base)
+        self.bucket_access_module = StorageBucketAccessModule(self.bucket_module.outputs(), entity, role)
 
+    def generate(self):
+        with open("bucket.tf.json", "w", encoding="utf-8") as f:
+            json.dump({"resource": self.bucket_module.resource()}, f, indent=2)
+        with open("bucket_access.tf.json", "w", encoding="utf-8") as f:
+            json.dump({"resource": self.bucket_access_module.resource()}, f, indent=2)
+        facade_outputs = {
+            "output": {
+                "bucket_name": {"value": self.bucket_module.name},
+                "access_entity": {"value": entity},
+                "access_role": {"value": role}
+            }
+        }
+        with open("facade.tf.json", "w", encoding="utf-8") as f:
+            json.dump(facade_outputs, f, indent=2)
+
+
+'''
 if __name__ == "__main__":
     bucket_mod = StorageBucketModule("hello-world")
     bucket_facade = bucket_mod.outputs()
@@ -73,6 +95,33 @@ if __name__ == "__main__":
 
     with open("bucket_access.tf.json", "w", encoding="utf-8") as f:
         json.dump({"resource": access_mod.resource()}, f, indent=2)
+
+    provider_conf = {
+        "terraform": {
+            "required_providers": {
+                "null": {
+                    "source": "hashicorp/null",
+                    "version": "~> 3.2"
+                }
+            }
+        },
+        "provider": {
+            "null": {}
+        }
+    }
+    with open("provider.tf.json", "w", encoding="utf-8") as f:
+        json.dump(provider_conf, f, indent=2)
+'''
+
+if __name__ == "__main__":
+    Path(".").mkdir(exist_ok=True)
+    # param
+    name_base = "hello-world"
+    entity = "allAuthenticatedUsers"
+    role = "READER"
+    # facade
+    facade = moduloFacade(name_base, entity, role)
+    facade.generate()
 
     provider_conf = {
         "terraform": {
