@@ -68,9 +68,112 @@ Se plantaría una métrica que esté basada en la cantidad de outputs documentad
 
 ### 4. Secuenciación de dependencias
 
+   * Describe cómo encadenarías (sin código) la ejecución de los módulos network -> compute -> storage para un integration test local.
+
+
+Lo realizaría de manera declarativa en Terraform, sin estar escribiendo scripts externos.
+La idea es que los módulos se conecten entre sí a través de sus outputs y inputs.
+
+El orden sería:
+-El módulo network se despliega primero y expone, por ejemplo, los IDs de las subredes.
+- El módulo compute recibe esos IDs como input y lanza las instancias en esas subredes.
+- El módulo storage toma los IDs de las instancias y los usa para configurar permisos o asociaciones de almacenamiento.
+Ejemplo conceptual:
+
+
+
+module "network" {
+  source = "./modules/network"
+  # variables...
+}
+
+module "compute" {
+  source       = "./modules/compute"
+  subnet_ids   = module.network.subnet_ids
+  # otras variables...
+}
+
+module "storage" {
+  source       = "./modules/storage"
+  instance_ids = module.compute.instance_ids
+  # otras variables...
+}
+
+
+
+
+* ¿Cómo garantizarías que los outputs del módulo previo (e.g., IDs de subredes) se consuman correctamente como inputs del siguiente, sin recurrir a scripts externos que rompan la inmutabilidad de Terraform?
+
+
+La clave estaría en dejar que Terraform gestione el grafo de dependencias:
+
+Los outputs del módulo anterior se usan como inputs del siguiente, con la sintaxis:
+module.<nombre_módulo>.<output>.Esto hace que Terraform entienda el orden de ejecución, y lo aplique de forma automática. Así evitamos scripts externos que podrían introducir errores o romper el principio de inmutabilidad de la infraestructura.
+
+
+
+
 ### 5. Entornos simulados con contenedores
 
+  * Propón un diseño de prueba que incluya, por ejemplo, un contenedor Docker simulando un servicio de base de datos; explica cómo levantarlo, conectarlo a tu Terraform local y validar que las instancias creadas puedan comunicarse.
+
+La idea es levantar un servicio simulado, como una base de datos, y probar que los recursos creados por Terraform pueden conectarse a él
+Diseño de prueba con Docker y Terraform:
+- Levantar un contenedor de prueba (por ejemplo, MySQL o Postgres) usando docker run o docker-compose.
+- Configurar las instancias creadas por Terraform (en compute) para que apunten al contenedor (IP local + puerto).
+- Añadir una validación que compruebe la conectividad (por ejemplo, un mysql -h ... o un psql que intente consultar algo sencillo).
+Ejemplo conceptual:
+
+
+resource "null_resource" "db_test" {
+  provisioner "local-exec" {
+    command = "mysql -h ${var.db_host} -u test -ptest -e 'SELECT 1;'"
+  }
+  depends_on = [module.compute]
+}
+
+
+ * ¿Qué retos de aislamiento y limpieza de estado deberás afrontar, y cómo los mitigarías teóricamente?
+
+* Aislamiento:
+
+Usa redes Docker dedicadas para tus pruebas.
+
+Evita puertos globales que puedan chocar con otros servicios.
+
+* Limpieza:
+
+Asegura que terraform destroy se ejecute al final de las pruebas.
+
+Ejecuta : docker-compose down o docker rm + docker network rm para dejar limpio el entorno.
+
+
+
 ### 6. Pruebas de interacción gradual
+
+   * Define dos niveles de depth en tus integration tests: uno que solo valide la legibilidad de los outputs compartidos y otro que verifique flujos reales de datos (por ejemplo, escritura en un bucket simulado).
+### Nivel 1: Validación de outputs
+
+#### Concepto:
+Solo se comprueba que los outputs esperados (por ejemplo, IDs de subredes, direcciones IP, rutas de almacenamiento) están presentes y tienen el formato correcto.
+#### De que manera:
+Utilizar terraform output, validaciones simples con scripts (jq, grep), sin interactuar con recursos reales.
+#### Cuándo usar:
+En validaciones rápidas, chequeos de contrato, integración básica o cuando cambian solo variables de configuración.
+### Nivel 2: Validación de flujos reales de datos
+
+#### Definición:
+Pruebas que interactúan realmente con los recursos (por ejemplo, escribir en un bucket simulado, conectarse a una base de datos, transferir archivos).
+#### De que manera:
+Provisioners, scripts de test, herramientas externas que verifican operaciones end-to-end.
+#### En qué momento usar:
+En cambios de lógica, despliegues mayores o cuando se requiere asegurar la funcionalidad efectiva de la infraestructura.
+
+ * Explica en qué situaciones cada nivel resulta más apropiado y cómo evitar solapamientos o redundancias entre ellos.
+Define claramente el objetivo de cada nivel.
+Usa el primer nivel solo para chequear presencia/forma de outputs y el segundo para operaciones funcionales.
+Podemos evitar  solapamientos o redundacias asi:
+Se documenta qué cubre cada test y automatiza la ejecución secuencial (de outputs simples a interacción real).
 
 ## Ejercicio 3: "Pruebas de humo" y "Pruebas de regresión"
 
